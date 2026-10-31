@@ -1,38 +1,20 @@
 // 数据库初始化与首个管理员 seeding
 import { hashPassword } from './auth.js';
 
-const SCHEMA = `
-CREATE TABLE IF NOT EXISTS users (
-  id           INTEGER PRIMARY KEY AUTOINCREMENT,
-  username     TEXT UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL,
-  salt         TEXT NOT NULL,
-  role         TEXT NOT NULL DEFAULT 'user',
-  email        TEXT,
-  created_at   INTEGER NOT NULL
-);
-CREATE TABLE IF NOT EXISTS invite_codes (
-  code       TEXT PRIMARY KEY,
-  created_by INTEGER NOT NULL,
-  used_by    INTEGER,
-  active     INTEGER NOT NULL DEFAULT 1,
-  created_at INTEGER NOT NULL,
-  used_at    INTEGER
-);
-CREATE TABLE IF NOT EXISTS sessions (
-  token      TEXT PRIMARY KEY,
-  user_id    INTEGER NOT NULL,
-  created_at INTEGER NOT NULL,
-  expires_at INTEGER NOT NULL,
-  FOREIGN KEY (user_id) REFERENCES users(id)
-);
-`;
+// 紧凑单行 SQL：D1 在 Worker 运行时对多行/缩进 SQL 的 exec 解析有异常，故用单行
+const TABLES = [
+  "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, salt TEXT NOT NULL, role TEXT NOT NULL DEFAULT 'user', email TEXT, created_at INTEGER NOT NULL)",
+  "CREATE TABLE IF NOT EXISTS invite_codes (code TEXT PRIMARY KEY, created_by INTEGER NOT NULL, used_by INTEGER, active INTEGER NOT NULL DEFAULT 1, created_at INTEGER NOT NULL, used_at INTEGER)",
+  "CREATE TABLE IF NOT EXISTS sessions (token TEXT PRIMARY KEY, user_id INTEGER NOT NULL, created_at INTEGER NOT NULL, expires_at INTEGER NOT NULL, FOREIGN KEY (user_id) REFERENCES users(id))",
+];
 
 let schemaReady = false;
 
 export async function ensureSchema(env) {
   if (schemaReady) return;
-  await env.DB.exec(SCHEMA);
+  for (const sql of TABLES) {
+    await env.DB.exec(sql);
+  }
   schemaReady = true;
 }
 
