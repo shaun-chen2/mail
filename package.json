@@ -1,0 +1,13 @@
+{
+  "name": "mail",
+  "version": "1.0.0",
+  "private": true,
+  "description": "网页邮箱：邀请制多用户 + SMTP 发信（Cloudflare Pages + D1）",
+  "scripts": {
+    "dev": "wrangler pages dev",
+    "deploy": "wrangler pages deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}

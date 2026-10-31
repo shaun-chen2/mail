@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>管理后台 · 我的邮箱</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="container">
+    <header class="topbar">
+      <div class="brand">⚙ 管理后台</div>
+      <div id="userbar" class="userbar"></div>
+    </header>
+
+    <section class="card">
+      <h2>生成邀请码</h2>
+      <p class="hint">普通账号注册必须凭有效的邀请码。每个邀请码仅可使用一次。</p>
+      <button id="genBtn">生成新邀请码</button>
+      <div id="newCode" class="code-box hidden"></div>
+    </section>
+
+    <section class="card" style="margin-top:20px;">
+      <h2>邀请码列表</h2>
+      <table id="codesTable">
+        <thead><tr><th>邀请码</th><th>状态</th><th>创建时间</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <div id="adminStatus" class="status"></div>
+  </div>
+
+  <script src="/admin.js"></script>
+</body>
+</html>

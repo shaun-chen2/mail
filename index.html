@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>我的邮箱</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="container">
+    <header class="topbar">
+      <div class="brand">✉ 我的邮箱</div>
+      <div id="userbar" class="userbar hidden"></div>
+    </header>
+
+    <!-- 登录 / 注册 -->
+    <section id="auth" class="card">
+      <div class="tabs">
+        <button class="tab active" data-tab="login">登录</button>
+        <button class="tab" data-tab="register">注册（需邀请码）</button>
+      </div>
+
+      <form id="loginForm" class="tabpane">
+        <label>用户名<input type="text" id="loginUser" autocomplete="username" required /></label>
+        <label>密码<input type="password" id="loginPass" autocomplete="current-password" required /></label>
+        <button type="submit">登录</button>
+      </form>
+
+      <form id="registerForm" class="tabpane hidden">
+        <label>用户名<input type="text" id="regUser" autocomplete="username" required /></label>
+        <label>密码（至少 6 位）<input type="password" id="regPass" autocomplete="new-password" required minlength="6" /></label>
+        <label>邀请码<input type="text" id="regCode" required /></label>
+        <label>邮箱（可选，作为回复地址）<input type="email" id="regEmail" /></label>
+        <button type="submit">注册</button>
+      </form>
+
+      <div id="authStatus" class="status"></div>
+    </section>
+
+    <!-- 写邮件 -->
+    <section id="compose" class="card hidden">
+      <h2>写邮件</h2>
+      <p id="fromLine" class="hint"></p>
+      <form id="sendForm">
+        <label>收件人<input type="email" id="to" required placeholder="someone@example.com" /></label>
+        <label>主题<input type="text" id="subject" required /></label>
+        <label>正文<textarea id="body" rows="9" required></textarea></label>
+        <button type="submit" id="sendBtn">发送</button>
+      </form>
+      <div id="sendStatus" class="status"></div>
+    </section>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
