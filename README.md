@@ -6,7 +6,9 @@
 - **权限模型**：一个 **管理员**，普通账号必须凭 **邀请码** 注册（邀请码由管理员在后台生成，单次有效）。
 - **发信能力**：登录后可通过网页写邮件并发出，**走 SMTP**（在 Cloudflare Worker 运行时用 `cloudflare:sockets` 直连你的 SMTP 服务器，凭据仅存于服务端，绝不暴露给浏览器）。
 
-> 说明：Cloudflare Pages 是静态前端 + Serverless 后端，**不能托管真正接收邮件的 SMTP 服务器（入站 MTA）**。本项目提供「出站发信 + 网页发信界面」。若以后需要收件/收件箱，可再接 Cloudflare Email Routing 或独立邮件服务器。
+> 说明：Cloudflare Pages 是静态前端 + Serverless 后端，**不能托管真正接收邮件的 SMTP 服务器（入站 MTA）**。本项目提供「出站发信 + 网页发信界面」。发信用的 SMTP 服务器有两种来源：
+> 1. **用第三方 SMTP**（Gmail / Outlook 等）—— 见下文「部署步骤 §3」。
+> 2. **自托管 MTA**（在自己的 VPS 上跑真正的邮件服务器）—— 见 [`mta/README.md`](mta/README.md)。这是「这个邮箱有自己的 SMTP 服务」的完整解法。
 
 ---
 
@@ -36,14 +38,29 @@ mail/
 ├── app.js / admin.js   前端逻辑
 ├── wrangler.toml       Cloudflare Pages + D1 配置
 ├── schema.sql          D1 表结构参考
+├── mta/                自托管邮件服务器（docker-mailserver）部署包，见 mta/README.md
 ├── functions/
-│   ├── _middleware.js  全局安全头
 │   ├── lib/            auth.js / db.js / smtp.js / util.js
 │   └── api/
 │       ├── me.js register.js login.js logout.js send.js
 │       └── admin/ invite.js codes.js
 └── README.md
 ```
+
+---
+
+## 自托管 MTA（用自己的邮件服务器发信）
+
+如果你想让这个邮箱**真正拥有自己的 SMTP 服务**（而不是借 Gmail/Outlook 发信），
+在 VPS 上跑一套自有邮件服务器即可——本仓库已附带完整部署包：
+
+- 位置：[`mta/`](mta/README.md)（基于 `docker-mailserver`，即 Postfix + OpenDKIM，业界标准方案）
+- 关键能力：真实 SMTP 收发、Let's Encrypt 证书经 Cloudflare DNS 自动签发、DKIM/SPF/DMARC 配套
+- 接法：app（Cloudflare Pages）把 `SMTP_HOST/PORT/USER/PASS` 指到这台 VPS 即可，代码无需改动
+- 详细步骤、DNS 模板、验证命令见 [`mta/README.md`](mta/README.md)
+
+> 提示：Cloudflare Pages 不能监听 25/465/587，所以 MTA 必须放在有公网 IP 的 VPS 上；
+> 网页发信后端以 SMTP 客户端身份连上去。这是「自托管发信」唯一可行形态。
 
 ---
 

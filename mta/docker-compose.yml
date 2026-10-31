@@ -1,0 +1,52 @@
+# 自托管邮件服务器（MTA）—— docker-mailserver (Postfix + OpenDKIM)
+#
+# 作用：在你的 VPS 上跑一个真正的 SMTP 服务器，网页邮箱 app（Cloudflare Pages）
+# 通过 SMTP 连上来发信。Cloudflare Pages 本身不能托管 SMTP，所以服务器必须放在 VPS。
+#
+# 证书：用 Let's Encrypt 的 DNS-01 校验，借助你已有的 Cloudflare 自动签发
+#       mail.<域名> 的公网证书（cloudflare:sockets 会校验证书，所以必须是公网 CA 签的）。
+#
+# 使用前：把 .env.example 复制为 .env 并填写。
+
+services:
+  mailserver:
+    image: docker.io/mailserver/docker-mailserver:latest
+    container_name: mailserver
+    # FQDN 会成为 mail.<MAIL_DOMAIN>，也是 TLS 证书的申请名
+    hostname: ${MAIL_HOSTNAME:-mail}
+    domainname: ${MAIL_DOMAIN:-example.com}
+    ports:
+      - "25:25"     # 入站 SMTP（接收外网来信；纯发信也可不开，但建议保留）
+      - "465:465"   # SMTPS 隐式 TLS —— 网页 app 推荐用这个端口
+      - "587:587"   # 提交端口 STARTTLS —— app 也支持
+      # - "993:993" # IMAPS，若以后想用邮件客户端收信再开放（本 app 仅发信，不需要）
+    environment:
+      - ENABLE_SPAMASSASSIN=0
+      - ENABLE_CLAMAV=0
+      - ENABLE_FAIL2BAN=1
+      - ENABLE_POSTGREY=0
+      - ONE_DIR=1
+      - DMS_DEBUG=0
+      - PERMIT_DOCKER=network
+      - TLS_LEVEL=intermediate
+      - SPOOF_PROTECTION=1      # 登录账号只能以自己地址发信，正好匹配 app 的 from=SMTP_USER
+      - SMTP_ONLY=0
+      - LOG_LEVEL=info
+      - POSTMASTER_ADDRESS=postmaster@${MAIL_DOMAIN:-example.com}
+      # ===== Let's Encrypt 通过 Cloudflare DNS-01 自动签发证书 =====
+      - SSL_TYPE=letsencrypt
+      - LETSENCRYPT_EMAIL=postmaster@${MAIL_DOMAIN:-example.com}
+      # CF_DNS_API_TOKEN 从 .env 注入（需 Zone:DNS:Edit 权限）；不要写死在仓库里
+      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
+    volumes:
+      - ./docker-data/dms/mail-data/:/var/mail/
+      - ./docker-data/dms/mail-state/:/var/mail-state/
+      - ./docker-data/dms/mail-logs/:/var/log/mail/
+      - ./docker-data/dms/config/:/tmp/docker-mailserver/
+      - /etc/localtime:/etc/localtime:ro
+    restart: always
+    stop_grace_period: 1m
+    healthcheck:
+      test: "ss --listening --tcp | grep -P 'LISTEN.+:smtp' || exit 1"
+      timeout: 3s
+      retries: 0

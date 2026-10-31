@@ -3,3 +3,6 @@ node_modules/
 *.log
 .DS_Store
 .env
+# 自托管 MTA 的本地配置与运行数据（含密钥，勿入库）
+mta/.env
+mta/docker-data/
